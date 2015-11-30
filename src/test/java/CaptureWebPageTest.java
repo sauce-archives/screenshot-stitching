@@ -10,6 +10,7 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Instant;
+import java.util.List;
 
 /**
  * Appium test to screen capture an entire website and save it as a PNG.
@@ -41,8 +42,9 @@ public class CaptureWebPageTest {
 
 		System.out.println("Connected to " + TESTOBJECT_DEVICE + " at " + APPIUM_SERVER + ".");
 
-		System.out.println(driver.getCapabilities().getCapability("testobject_test_report_url"));
-		System.out.println(driver.getCapabilities().getCapability("testobject_test_live_view_url"));
+		System.out.println("Report URL: " + driver.getCapabilities().getCapability("testobject_test_report_url"));
+		System.out.println("Live view: " + driver.getCapabilities().getCapability("testobject_test_live_view_url"));
+		System.out.println("--------------------");
 	}
 
 	@After
@@ -54,15 +56,17 @@ public class CaptureWebPageTest {
 
 	@Test
 	public void openWebPageAndTakeScreenshot() throws Exception {
-		for (String url : Websites.list()){
-			System.out.println("Capturing screenshots of " + url + "...");
+		List<String> websites = Websites.list();
+		for (int i = 0; i < websites.size(); ++i){
+			String url = websites.get(i);
+			System.out.println(" Capturing screenshots of " + url + "(" + i + "/" + websites.size() + ")");
 			driver.get(url);
-			System.out.println("Requesting screenshot");
 			File screenshot = driver.getStitchedScreenshotAs(OutputType.FILE);
 			File savedScreenshot = new File(getScreenshotPath(url));
+			//noinspection ResultOfMethodCallIgnored
 			savedScreenshot.getParentFile().mkdirs();
 			FileUtils.copyFile(screenshot, savedScreenshot);
-			System.out.println("Saved screenshot to " + savedScreenshot.getPath());
+			System.out.println("  Saved screenshot to " + savedScreenshot.getPath());
 		}
 	}
 
