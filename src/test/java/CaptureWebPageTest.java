@@ -63,7 +63,7 @@ public class CaptureWebPageTest {
 
 				driver = new TestObjectRemoteWebDriver(endpoint, capabilities);
 
-				System.out.println("Connected to " + TESTOBJECT_DEVICE + " at " + APPIUM_SERVER + ".");
+				System.out.println("Connected to " + TESTOBJECT_DEVICE + " at " + APPIUM_SERVER + ", attempt " + (attempt + 1));
 
 				System.out.println("Report URL: " + driver.getCapabilities().getCapability("testobject_test_report_url"));
 				System.out.println("Live view: " + driver.getCapabilities().getCapability("testobject_test_live_view_url"));
@@ -84,7 +84,7 @@ public class CaptureWebPageTest {
 				driver.quit();
 				return;
 			} catch (Exception e) {
-				System.out.println("Failed to take screenshots (" + e.getMessage() + "); attempt " + attempt);
+				System.out.println("Failed to take screenshots: " + e.getMessage() + "\n");
 				if (attempt < maxAttempts) {
 					System.out.println("Trying again...");
 				} else {
