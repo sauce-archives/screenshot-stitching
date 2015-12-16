@@ -45,45 +45,53 @@ public class CaptureWebPageTest {
 		return websiteLists;
 	}
 
-	@Before
-	public void setup() throws MalformedURLException {
-		DesiredCapabilities capabilities = new DesiredCapabilities();
-		capabilities.setCapability("testobject_device", TESTOBJECT_DEVICE);
-		capabilities.setCapability("testobject_api_key", TESTOBJECT_API_KEY);
-		capabilities.setCapability("testobject_app_id", TESTOBJECT_APP_ID);
-		capabilities.setCapability("testobject_appium_version", TESTOBJECT_APPIUM_VERSION);
-		capabilities.setCapability("testobject_test_name", "Screenshot Stitching");
-
-		URL endpoint = new URL(APPIUM_SERVER);
-
-		driver = new TestObjectRemoteWebDriver(endpoint, capabilities);
-
-		System.out.println("Connected to " + TESTOBJECT_DEVICE + " at " + APPIUM_SERVER + ".");
-
-		System.out.println("Report URL: " + driver.getCapabilities().getCapability("testobject_test_report_url"));
-		System.out.println("Live view: " + driver.getCapabilities().getCapability("testobject_test_live_view_url"));
-		System.out.println("--------------------");
-	}
-
-	@After
-	public void tearDown() {
-		if (driver != null) {
-			driver.quit();
-		}
-	}
-
 	@Test
 	public void openWebPageAndTakeScreenshot() throws Exception {
-		for (int i = 0; i < websites.size(); ++i){
-			String url = websites.get(i);
-			System.out.println(" Capturing screenshots of " + url + "(" + i + "/" + websites.size() + ")");
-			driver.get(url);
-			File screenshot = driver.getStitchedScreenshotAs(OutputType.FILE);
-			File savedScreenshot = new File(getScreenshotPath(url));
-			//noinspection ResultOfMethodCallIgnored
-			savedScreenshot.getParentFile().mkdirs();
-			FileUtils.copyFile(screenshot, savedScreenshot);
-			System.out.println("  Saved screenshot to " + savedScreenshot.getPath());
+		int maxAttempts = 5;
+
+		for (int attempt = 0; ; ++attempt) {
+			try {
+
+				DesiredCapabilities capabilities = new DesiredCapabilities();
+				capabilities.setCapability("testobject_device", TESTOBJECT_DEVICE);
+				capabilities.setCapability("testobject_api_key", TESTOBJECT_API_KEY);
+				capabilities.setCapability("testobject_app_id", TESTOBJECT_APP_ID);
+				capabilities.setCapability("testobject_appium_version", TESTOBJECT_APPIUM_VERSION);
+				capabilities.setCapability("testobject_test_name", "Screenshot Stitching");
+
+				URL endpoint = new URL(APPIUM_SERVER);
+
+				driver = new TestObjectRemoteWebDriver(endpoint, capabilities);
+
+				System.out.println("Connected to " + TESTOBJECT_DEVICE + " at " + APPIUM_SERVER + ".");
+
+				System.out.println("Report URL: " + driver.getCapabilities().getCapability("testobject_test_report_url"));
+				System.out.println("Live view: " + driver.getCapabilities().getCapability("testobject_test_live_view_url"));
+				System.out.println("--------------------");
+
+				for (int i = 0; i < websites.size(); ++i) {
+					String url = websites.get(i);
+					System.out.println(" Capturing screenshots of " + url + "(" + i + "/" + websites.size() + ")");
+					driver.get(url);
+					File screenshot = driver.getStitchedScreenshotAs(OutputType.FILE);
+					File savedScreenshot = new File(getScreenshotPath(url));
+					//noinspection ResultOfMethodCallIgnored
+					savedScreenshot.getParentFile().mkdirs();
+					FileUtils.copyFile(screenshot, savedScreenshot);
+					System.out.println("  Saved screenshot to " + savedScreenshot.getPath());
+				}
+
+				driver.quit();
+				return;
+			} catch (Exception e) {
+				System.out.println("Failed to take screenshots (" + e.getMessage() + "); attempt " + attempt);
+				if (attempt < maxAttempts) {
+					System.out.println("Trying again...");
+				} else {
+					System.out.println("Giving up.");
+					throw e;
+				}
+			}
 		}
 	}
 
