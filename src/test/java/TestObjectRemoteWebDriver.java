@@ -1,4 +1,3 @@
-import io.appium.java_client.ios.IOSDriver;
 import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.WebDriverException;
@@ -12,10 +11,11 @@ import java.net.URL;
 
 public class TestObjectRemoteWebDriver extends RemoteWebDriver {
 	private static final String SCREENSHOT_STITCH_COMMAND = "stitchedScreenshot";
+	private static final String RESET_COMMAND = "reset";
+	private static final String CLOSE_COMMAND = "closeApp";
 
 	public TestObjectRemoteWebDriver(URL remoteAddress, Capabilities desiredCapabilities) {
 		super(new TestObjectHttpCommandExecutor(remoteAddress), desiredCapabilities);
-
 	}
 
 	public <X> X getStitchedScreenshotAs(OutputType<X> outputType) throws WebDriverException {
@@ -34,10 +34,21 @@ public class TestObjectRemoteWebDriver extends RemoteWebDriver {
 		}
 	}
 
+	public void resetApp() {
+		execute(RESET_COMMAND);
+	}
+
+	public void closeApp() {
+		execute(CLOSE_COMMAND);
+	}
+
 	private static class TestObjectHttpCommandExecutor extends HttpCommandExecutor {
+
 		public TestObjectHttpCommandExecutor(URL remoteAddress) {
 			super(remoteAddress);
 			defineCommand(SCREENSHOT_STITCH_COMMAND, new CommandInfo("/session/:sessionId/stitchedScreenshot", HttpMethod.GET));
+			defineCommand(RESET_COMMAND, new CommandInfo("/session/:sessionId/appium/app/reset", HttpMethod.POST));
+			defineCommand(CLOSE_COMMAND, new CommandInfo("/session/:sessionId/appium/app/close", HttpMethod.POST));
 		}
 	}
 }
