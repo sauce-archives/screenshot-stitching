@@ -6,9 +6,10 @@ import org.openqa.selenium.remote.DesiredCapabilities;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.time.Instant;
+import java.net.URLEncoder;
 import java.util.List;
 
 /**
@@ -26,15 +27,15 @@ public class CaptureWebPageTest {
 
 	@Test
 	public void openWebPageAndTakeScreenshot() throws Exception {
-		System.out.println(" --- SCREENSHOT STITCHING --- \n");
+		System.out.println(" --- SCREENSHOT STITCHING (" + TESTOBJECT_DEVICE + ") --- \n");
 		TestObjectRemoteWebDriver driver = setUpDriver();
 		for (int i = 0; i < websites.size(); ++i) { // Take a screenshot of every website
-			for (int attempt = 0; attempt < maxAttempts; ++attempt) { // Attempt each up to 5 times.
+			for (int attempt = 1; attempt <= maxAttempts; ++attempt) { // Attempt each up to 5 times.
 				try {
 					takeStitchedScreenshot(driver, i);
 					break;
-				} catch (Exception e) {
-					System.out.println("Failed to take screenshot, exception: " + e.getMessage());
+				} catch (Throwable e) {
+					System.out.println("Failed to take screenshot (attempt " + attempt + "), exception: " + e.getMessage());
 					driver = setUpDriver();
 				}
 			}
@@ -43,7 +44,7 @@ public class CaptureWebPageTest {
 
 	private void takeStitchedScreenshot(TestObjectRemoteWebDriver driver, int i) throws IOException {
 		String url = websites.get(i);
-		System.out.println(" Capturing screenshots of " + url + " (" + i + "/" + websites.size() + ")");
+		System.out.println(" Capturing screenshots of " + url + " (" + (i+1) + "/" + websites.size() + ")");
 		driver.get(url);
 		File screenshot = driver.getStitchedScreenshotAs(OutputType.FILE);
 		File savedScreenshot = new File(getScreenshotPath(url));
@@ -82,11 +83,12 @@ public class CaptureWebPageTest {
 		}
 	}
 
-	public String getScreenshotPath(String url) {
-		String website = url.replace("https://", "")
-				.replace("http://", "");
-		website = website.substring(0, website.indexOf("/"));
-		website = website.replace(".", "");
-		return TESTOBJECT_DEVICE + File.separator + website + File.separator + "screenshot-" + Instant.now() + ".png";
+	public String getScreenshotPath(String url) throws UnsupportedEncodingException {
+		String strippedProtocol = url.replace("http://", "").replace("https://", "");
+		String domain = strippedProtocol.substring(0, strippedProtocol.indexOf("/"));
+		String path = strippedProtocol.substring(strippedProtocol.indexOf("/") + 1);
+		domain = URLEncoder.encode(domain, "UTF-8");
+		path = URLEncoder.encode(path, "UTF-8");
+		return TESTOBJECT_DEVICE + File.separator + domain + File.separator + path + ".png";
 	}
 }
