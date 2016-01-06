@@ -32,8 +32,8 @@ public class CaptureWebPageTest {
 		for (int i = 0; i < websites.size(); ++i) { // Take a screenshot of every website
 			for (int attempt = 1; attempt <= maxAttempts; ++attempt) { // Attempt each up to 5 times.
 				try {
-					driver.manage().deleteAllCookies();
 					takeStitchedScreenshot(driver, i);
+					driver.manage().deleteAllCookies();
 					break;
 				} catch (Throwable e) {
 					System.out.println("Failed to take screenshot (attempt " + attempt + "), exception: " + e.getMessage());
