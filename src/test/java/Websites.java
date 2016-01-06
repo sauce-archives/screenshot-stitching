@@ -6,7 +6,7 @@ import java.util.Optional;
 
 public class Websites {
 	public static List<String> list() {
-		String websitesFileName = Optional.ofNullable(System.getenv("website_list_file")).orElse("websites.txt");
+		String websitesFileName = Optional.ofNullable(System.getenv("WEBSITE_LIST_FILE")).orElse("websites.txt");
 		try {
 			return Files.readAllLines(Paths.get(websitesFileName));
 		} catch (IOException e) {
