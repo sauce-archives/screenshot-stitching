@@ -36,6 +36,7 @@ public class CaptureWebPageTest {
 					break;
 				} catch (Throwable e) {
 					System.out.println("Failed to take screenshot (attempt " + attempt + "), exception: " + e.getMessage());
+					Thread.sleep(30 * 1000);
 					driver = setUpDriver();
 				}
 			}
