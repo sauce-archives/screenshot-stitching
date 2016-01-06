@@ -1,107 +1,78 @@
 
-import io.appium.java_client.ios.IOSDriver;
-import org.junit.Before;
+import org.apache.commons.io.FileUtils;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.openqa.selenium.OutputType;
 import org.openqa.selenium.remote.DesiredCapabilities;
-import ru.yandex.qatools.ashot.AShot;
-import ru.yandex.qatools.ashot.Screenshot;
-import ru.yandex.qatools.ashot.shooting.ShootingStrategies;
-import ru.yandex.qatools.ashot.shooting.cutter.FixedCutStrategy;
 
-import javax.imageio.ImageIO;
 import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.Locale;
-import java.util.concurrent.TimeUnit;
+import java.net.URLEncoder;
+import java.util.List;
 
 /**
  * Appium test to screen capture an entire website and save it as a PNG.
  */
-@RunWith(Parameterized.class)
 public class CaptureWebPageTest {
 	private static final String APPIUM_SERVER = getEnvOrDefault("APPIUM_SERVER", "https://app.testobject.com:443/api/appium/wd/hub");
-	private static final String TESTOBJECT_DEVICE = getEnvOrDefault("TESTOBJECT_DEVICE", "iPad_Air_2_16GB_real");
-	private static final String TESTOBJECT_APPIUM_VERSION = getEnvOrDefault("TESTOBJECT_APPIUM_VERSION", "1.3.7");
+	private static final String TESTOBJECT_DEVICE = getEnvOrDefault("TESTOBJECT_DEVICE", "iPhone_6S_Plus_16GB_real_2");
+	private static final String TESTOBJECT_APPIUM_VERSION = getEnvOrDefault("TESTOBJECT_APPIUM_VERSION", "1.4.16");
 	private static String TESTOBJECT_API_KEY = getEnvOrDefault("TESTOBJECT_API_KEY", "");
-	private static String TESTOBJECT_APP_ID = getEnvOrDefault("TESTOBJECT_APP_ID", "1");
+	private static String TESTOBJECT_APP_ID = getEnvOrDefault("TESTOBJECT_APP_ID", "");
 
-	private static Instant startTime = null; // Used for screenshot folder
-	private IOSDriver driver;
-	private final String url;
+	private static int maxAttempts = 5;
+	private static List<String> websites = Websites.list();
 
-	public CaptureWebPageTest(String url) {
-		this.url = url;
-	}
-
-	@Parameterized.Parameters
-	public static Iterable websites() {
-		return Arrays.asList(
-			new String[][] {
-					{ "http://www.bbc.co.uk" },
-					{ "http://www.stuff.co.nz" },
-				    { "http://www.yahoo.com" }
+	@Test
+	public void openWebPageAndTakeScreenshot() throws Exception {
+		System.out.println(" --- SCREENSHOT STITCHING (" + TESTOBJECT_DEVICE + ") --- \n");
+		TestObjectRemoteWebDriver driver = setUpDriver();
+		for (int i = 0; i < websites.size(); ++i) { // Take a screenshot of every website
+			for (int attempt = 1; attempt <= maxAttempts; ++attempt) { // Attempt each up to 5 times.
+				try {
+					takeStitchedScreenshot(driver, i);
+					break;
+				} catch (Throwable e) {
+					System.out.println("Failed to take screenshot (attempt " + attempt + "), exception: " + e.getMessage());
+					Thread.sleep(30 * 1000);
+					driver = setUpDriver();
+				}
 			}
-		);
+		}
 	}
 
-	@Before
-	public void setup() throws MalformedURLException {
+	private void takeStitchedScreenshot(TestObjectRemoteWebDriver driver, int i) throws IOException {
+		String url = websites.get(i);
+		System.out.println(" Capturing screenshots of " + url + " (" + (i+1) + "/" + websites.size() + ")");
+		driver.get(url);
+		File screenshot = driver.getStitchedScreenshotAs(OutputType.FILE);
+		File savedScreenshot = new File(getScreenshotPath(url));
+		//noinspection ResultOfMethodCallIgnored
+		savedScreenshot.getParentFile().mkdirs();
+		FileUtils.copyFile(screenshot, savedScreenshot);
+		System.out.println("  Saved screenshot to " + savedScreenshot.getPath());
+	}
+
+	private static TestObjectRemoteWebDriver setUpDriver() throws MalformedURLException {
 		DesiredCapabilities capabilities = new DesiredCapabilities();
 		capabilities.setCapability("testobject_device", TESTOBJECT_DEVICE);
 		capabilities.setCapability("testobject_api_key", TESTOBJECT_API_KEY);
 		capabilities.setCapability("testobject_app_id", TESTOBJECT_APP_ID);
 		capabilities.setCapability("testobject_appium_version", TESTOBJECT_APPIUM_VERSION);
+		capabilities.setCapability("testobject_test_name", "Screenshot Stitching");
 
 		URL endpoint = new URL(APPIUM_SERVER);
 
-		driver = new IOSDriver(endpoint, capabilities);
+		TestObjectRemoteWebDriver driver = new TestObjectRemoteWebDriver(endpoint, capabilities);
 
-		if (driver != null) {
-			System.out.println(driver.getCapabilities().getCapability("testobject_test_report_url"));
-			System.out.println(driver.getCapabilities().getCapability("testobject_test_live_view_url"));
-		}
+		System.out.println("Connected to " + TESTOBJECT_DEVICE + " at " + APPIUM_SERVER);
+		System.out.println("Report URL: " + driver.getCapabilities().getCapability("testobject_test_report_url"));
+		System.out.println("Live view: " + driver.getCapabilities().getCapability("testobject_test_live_view_url"));
+		System.out.println("--------------------");
 
-		if (startTime == null) {
-			startTime = Instant.now();
-		}
-	}
-
-	@Test
-	public void openWebPageAndTakeScreenshot() throws Exception {
-		driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
-		driver.get(url);
-
-		Number headerHeight = (Number)driver.executeScript("return screen.height - window.innerHeight;");
-		Number footerHeight = 0;
-
-		takeScreenshot(headerHeight.intValue(), footerHeight.intValue());
-	}
-
-	private void takeScreenshot(int top, int bottom) throws Exception {
-		System.out.println("Taking screenshots, and cropping " + top + "px of header and " + bottom + "px of footer");
-		try {
-			final Screenshot screenshot = new AShot()
-					.shootingStrategy(ShootingStrategies.viewportRetina(500, new FixedCutStrategy(top, bottom), 2))
-					.takeScreenshot(driver);
-			final String parentFolder = DateTimeFormatter
-					.ofPattern("yyyy-MM-dd-HH-mm-ss")
-					.withLocale(Locale.GERMAN)
-					.withZone(ZoneId.systemDefault())
-					.format(startTime);
-			final File localScreenshot = new File(parentFolder + "/" + getFilename());
-			localScreenshot.getParentFile().mkdirs();
-			ImageIO.write(screenshot.getImage(), "PNG", localScreenshot);
-		} catch (Exception e) {
-			System.out.println("Exception while saving screenshot: " + e.getMessage());
-			throw e;
-		}
+		return driver;
 	}
 
 	protected static String getEnvOrDefault(String environmentVariable, String defaultValue) {
@@ -113,11 +84,12 @@ public class CaptureWebPageTest {
 		}
 	}
 
-	public String getFilename() {
-		String filename = url;
-		filename = filename.replace("https://", "");
-		filename = filename.replace("http://", "");
-		filename = filename.replaceAll("\\.", "");
-		return filename + ".png";
+	public String getScreenshotPath(String url) throws UnsupportedEncodingException {
+		String strippedProtocol = url.replace("http://", "http.").replace("https://", "https.");
+		String domain = strippedProtocol.substring(0, strippedProtocol.indexOf("/"));
+		String path = strippedProtocol.substring(strippedProtocol.indexOf("/") + 1);
+		domain = URLEncoder.encode(domain, "UTF-8");
+		path = URLEncoder.encode(path, "UTF-8");
+		return TESTOBJECT_DEVICE + File.separator + domain + File.separator + path + ".png";
 	}
 }
