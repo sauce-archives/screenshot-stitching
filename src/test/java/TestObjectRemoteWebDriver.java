@@ -14,11 +14,11 @@ public class TestObjectRemoteWebDriver extends RemoteWebDriver {
 	private static final String RESET_COMMAND = "reset";
 	private static final String CLOSE_COMMAND = "closeApp";
 
-	public TestObjectRemoteWebDriver(URL remoteAddress, Capabilities desiredCapabilities) {
+	TestObjectRemoteWebDriver(URL remoteAddress, Capabilities desiredCapabilities) {
 		super(new TestObjectHttpCommandExecutor(remoteAddress), desiredCapabilities);
 	}
 
-	public <X> X getStitchedScreenshotAs(OutputType<X> outputType) throws WebDriverException {
+	<X> X getStitchedScreenshotAs(OutputType<X> outputType) throws WebDriverException {
 		Response response = execute(SCREENSHOT_STITCH_COMMAND);
 		Object result = response.getValue();
 		if (result instanceof String) {
@@ -44,7 +44,7 @@ public class TestObjectRemoteWebDriver extends RemoteWebDriver {
 
 	private static class TestObjectHttpCommandExecutor extends HttpCommandExecutor {
 
-		public TestObjectHttpCommandExecutor(URL remoteAddress) {
+		TestObjectHttpCommandExecutor(URL remoteAddress) {
 			super(remoteAddress);
 			defineCommand(SCREENSHOT_STITCH_COMMAND, new CommandInfo("/session/:sessionId/stitchedScreenshot", HttpMethod.GET));
 			defineCommand(RESET_COMMAND, new CommandInfo("/session/:sessionId/appium/app/reset", HttpMethod.POST));

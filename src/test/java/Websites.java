@@ -4,8 +4,8 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 
-public class Websites {
-	public static List<String> list() {
+class Websites {
+	static List<String> list() {
 		String websitesFileName = Optional.ofNullable(System.getenv("WEBSITE_LIST_FILE")).orElse("websites.txt");
 		try {
 			return Files.readAllLines(Paths.get(websitesFileName));
