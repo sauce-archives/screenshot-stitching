@@ -5,19 +5,28 @@ locally.
 
 # Instructions
 
-The test reads environment variables for configuration. The following are required:
+The test reads environment variables for configuration:
 
-* `TESTOBJECT_API_KEY`
-* `TESTOBJECT_APP_ID`
-
-The following environment variables are optional:
-
-* `TESTOBJECT_DEVICE` (default is `iPhone_6S_Plus_16GB_real_2`)
+* `TESTOBJECT_APP_ID` (default is `1`, match this up to the ID in the [App Versions section of your app on TestObject](https://app.testobject.com/#/philll/adblock-appium-test/settings/app-versions))
+* `TESTOBJECT_API_KEY` (default is `***REMOVED***`, the key for [Adblock Appium Test](https://app.testobject.com/#/philll/adblock-appium-test/))
+* `TESTOBJECT_DEVICE` (default is `iPhone_6S_Plus_16GB_real_ABP_off_private`)
 * `TESTOBJECT_APPIUM_VERSION` (default is `1.4.16`)
 * `WEBSITE_LIST_FILE` (default is `websites.txt`)
 
+## Testing with ABP off
+
+The defaults are set to test with ABP off. You are still free to modify settings via environment variables if you wish.
+
+## Testing with ABP on
+
+* Set `TESTOBJECT_APP_ID` to an array, the first element of which is the ID of your web test, and the second of which is the ID of the
+Adblock Plus app, which will be installed as a dependency. For example, `TESTOBJECT_APP_ID=['1', '2']`
+* Set `TESTOBJECT_DEVICE` to `iPhone_6S_Plus_16GB_real_ABP_on_private`
+
+## Running test
+
 After setting these environment variables, run `gradle clean test`, or configure your CI to do so. The test will run through each URL
-in `websites.txt` (a newline separated list), and save each screenshot to `iPhone_6S_Plus_16GB_real_2/http.www.example.com/restofurl.png`
+in `websites.txt` (a newline separated list), and save each screenshot to `iPhone_6S_Plus_16GB_real_ABP_off_private/http.www.example.com/restofurl.png`
 
 # Notes
 
