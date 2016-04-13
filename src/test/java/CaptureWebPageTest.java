@@ -1,4 +1,3 @@
-
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 import org.openqa.selenium.OutputType;
@@ -19,13 +18,13 @@ import java.util.List;
  */
 public class CaptureWebPageTest {
 	private static final String APPIUM_SERVER = getEnvOrDefault("APPIUM_SERVER", "https://app.testobject.com:443/api/appium/wd/hub");
-	private static final String TESTOBJECT_DEVICE = getEnvOrDefault("TESTOBJECT_DEVICE", "iPhone_6S_Plus_16GB_real_2");
+	private static final String TESTOBJECT_DEVICE = getEnvOrDefault("TESTOBJECT_DEVICE", "iPhone_6S_Plus_16GB_real_ABP_off_private");
 	private static final String TESTOBJECT_APPIUM_VERSION = getEnvOrDefault("TESTOBJECT_APPIUM_VERSION", "1.4.16");
-						private static String TESTOBJECT_API_KEY = getEnvOrDefault("TESTOBJECT_API_KEY", "");
-	private static String TESTOBJECT_APP_ID = getEnvOrDefault("TESTOBJECT_APP_ID", "");
+						private static String TESTOBJECT_API_KEY = getEnvOrDefault("TESTOBJECT_API_KEY", "***REMOVED***");
+	private static String TESTOBJECT_APP_ID = getEnvOrDefault("TESTOBJECT_APP_ID", "1");
 
-	private static int maxAttempts = 5;
-	private static List<String> websites = Websites.list();
+	private static final int maxAttempts = 5;
+	private static final List<String> websites = Websites.list();
 
 	@Test
 	public void openWebPageAndTakeScreenshot() throws Exception {
@@ -67,7 +66,7 @@ public class CaptureWebPageTest {
 		DesiredCapabilities capabilities = new DesiredCapabilities();
 		capabilities.setCapability("testobject_device", TESTOBJECT_DEVICE);
 		capabilities.setCapability("testobject_api_key", TESTOBJECT_API_KEY);
-		capabilities.setCapability("testobject_app_id", TESTOBJECT_APP_ID);
+		capabilities.setCapability("testobject_app_id", parseAppId(TESTOBJECT_APP_ID));
 		capabilities.setCapability("testobject_appium_version", TESTOBJECT_APPIUM_VERSION);
 		capabilities.setCapability("testobject_test_name", "Screenshot Stitching");
 
@@ -81,6 +80,10 @@ public class CaptureWebPageTest {
 		System.out.println("--------------------");
 
 		return driver;
+	}
+
+	private static String[] parseAppId(String appIdString) {
+		return appIdString.split(",");
 	}
 
 	protected static String getEnvOrDefault(String environmentVariable, String defaultValue) {

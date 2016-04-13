@@ -19,8 +19,8 @@ The defaults are set to test with ABP off. You are still free to modify settings
 
 ## Testing with ABP on
 
-* Set `TESTOBJECT_APP_ID` to an array, the first element of which is the ID of your web test, and the second of which is the ID of the
-Adblock Plus app, which will be installed as a dependency. For example, `TESTOBJECT_APP_ID=['1', '2']`
+* Set `TESTOBJECT_APP_ID` to comma separated list of values, the first element of which is the ID of your web test, and the second of which is the ID of the
+Adblock Plus app, which will be installed as a dependency. For example, `TESTOBJECT_APP_ID=1,2`
 * Set `TESTOBJECT_DEVICE` to `iPhone_6S_Plus_16GB_real_ABP_on_private`
 
 ## Running test
