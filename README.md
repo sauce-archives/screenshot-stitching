@@ -7,8 +7,8 @@ locally.
 
 The test reads environment variables for configuration:
 
-* `TESTOBJECT_APP_ID` (default is `1`, match this up to the ID in the [App Versions section of your app on TestObject](https://app.testobject.com/#/philll/adblock-appium-test/settings/app-versions))
-* `TESTOBJECT_API_KEY` (default is `***REMOVED***`, the key for [Adblock Appium Test](https://app.testobject.com/#/philll/adblock-appium-test/))
+* `TESTOBJECT_API_KEY` (**required**)
+* `TESTOBJECT_APP_ID` (default is `1`, match this up to the ID in the App Versions section of your app on TestObject)
 * `TESTOBJECT_DEVICE` (default is `iPhone_6S_Plus_16GB_real_ABP_off_private`)
 * `TESTOBJECT_APPIUM_VERSION` (default is `1.4.16`)
 * `WEBSITE_LIST_FILE` (default is `websites.txt`)

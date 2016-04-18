@@ -1,5 +1,6 @@
+package org.testobject.screenshotstitching;
+
 import org.apache.commons.io.FileUtils;
-import org.junit.Test;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.remote.DesiredCapabilities;
 
@@ -20,14 +21,18 @@ public class CaptureWebPageTest {
 	private static final String APPIUM_SERVER = getEnvOrDefault("APPIUM_SERVER", "https://app.testobject.com:443/api/appium/wd/hub");
 	private static final String TESTOBJECT_DEVICE = getEnvOrDefault("TESTOBJECT_DEVICE", "iPhone_6S_Plus_16GB_real_ABP_off_private");
 	private static final String TESTOBJECT_APPIUM_VERSION = getEnvOrDefault("TESTOBJECT_APPIUM_VERSION", "1.4.16");
-						private static String TESTOBJECT_API_KEY = getEnvOrDefault("TESTOBJECT_API_KEY", "***REMOVED***");
+						private static String TESTOBJECT_API_KEY = getEnvOrDefault("TESTOBJECT_API_KEY", "");
 	private static String TESTOBJECT_APP_ID = getEnvOrDefault("TESTOBJECT_APP_ID", "1");
 
 	private static final int maxAttempts = 5;
 	private static final List<String> websites = Websites.list();
 
-	@Test
-	public void openWebPageAndTakeScreenshot() throws Exception {
+	public static void main(String... args) throws Exception {
+		CaptureWebPageTest test = new CaptureWebPageTest();
+		test.openWebPageAndTakeScreenshot();
+	}
+
+	private void openWebPageAndTakeScreenshot() throws Exception {
 		Instant beginTime = Instant.now();
 		System.out.println(" --- SCREENSHOT STITCHING (" + TESTOBJECT_DEVICE + ") --- \n");
 
@@ -86,7 +91,7 @@ public class CaptureWebPageTest {
 		return appIdString.split(",");
 	}
 
-	protected static String getEnvOrDefault(String environmentVariable, String defaultValue) {
+	private static String getEnvOrDefault(String environmentVariable, String defaultValue) {
 		String value = System.getenv(environmentVariable);
 		if (value == null) {
 			return defaultValue;
@@ -95,7 +100,7 @@ public class CaptureWebPageTest {
 		}
 	}
 
-	public String getScreenshotPath(String url) throws UnsupportedEncodingException {
+	private String getScreenshotPath(String url) throws UnsupportedEncodingException {
 		String strippedProtocol = url.replace("http://", "http.").replace("https://", "https.");
 		String domain = strippedProtocol.substring(0, strippedProtocol.indexOf("/"));
 		String path = strippedProtocol.substring(strippedProtocol.indexOf("/") + 1);

@@ -1,5 +1,5 @@
 group 'org.testobject.appium'
-version '1.1-SNAPSHOT'
+version '1.2-SNAPSHOT'
 
 buildscript {
     repositories {
@@ -13,7 +13,10 @@ buildscript {
 }
 
 apply plugin: 'java'
+apply plugin: 'application'
 apply plugin: 'com.github.johnrengelman.shadow'
+
+mainClassName="org.testobject.screenshotstitching.CaptureWebPageTest"
 
 sourceCompatibility = 1.8
 
@@ -26,12 +29,5 @@ repositories {
 }
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.12'
-    testCompile 'io.appium:java-client:3.1.0'
-}
-
-test {
-    testLogging {
-        exceptionFormat = 'full'
-    }
+    compile 'io.appium:java-client:3.1.0'
 }
