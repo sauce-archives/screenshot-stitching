@@ -17,7 +17,7 @@ import java.util.List;
 /**
  * Appium test to screen capture an entire website and save it as a PNG.
  */
-public class CaptureWebPageTest {
+public class CaptureWebPage {
 	private static final String APPIUM_SERVER = getEnvOrDefault("APPIUM_SERVER", "https://app.testobject.com:443/api/appium/wd/hub");
 	private static final String TESTOBJECT_DEVICE = getEnvOrDefault("TESTOBJECT_DEVICE", "iPhone_6S_Plus_16GB_real_ABP_off_private");
 	private static final String TESTOBJECT_APPIUM_VERSION = getEnvOrDefault("TESTOBJECT_APPIUM_VERSION", "1.4.16");
@@ -28,7 +28,7 @@ public class CaptureWebPageTest {
 	private static final List<String> websites = Websites.list();
 
 	public static void main(String... args) throws Exception {
-		CaptureWebPageTest test = new CaptureWebPageTest();
+		CaptureWebPage test = new CaptureWebPage();
 		test.openWebPageAndTakeScreenshot();
 	}
 

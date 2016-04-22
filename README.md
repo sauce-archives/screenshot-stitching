@@ -19,14 +19,17 @@ The defaults are set to test with ABP off. You are still free to modify settings
 
 ## Testing with ABP on
 
-* Set `TESTOBJECT_APP_ID` to comma separated list of values, the first element of which is the ID of your web test, and the second of which is the ID of the
-Adblock Plus app, which will be installed as a dependency. For example, `TESTOBJECT_APP_ID=1,2`
+* Set `TESTOBJECT_APP_ID` to comma separated list of values, the first element of which is the ID of your web test, and the second of which
+is the ID of the Adblock Plus app, which will be installed as a dependency. For example, `TESTOBJECT_APP_ID=1,2`
 * Set `TESTOBJECT_DEVICE` to `iPhone_6S_Plus_16GB_real_ABP_on_private`
 
 ## Running test
 
-After setting these environment variables, run `gradle clean test`, or configure your CI to do so. The test will run through each URL
-in `websites.txt` (a newline separated list), and save each screenshot to `iPhone_6S_Plus_16GB_real_ABP_off_private/http.www.example.com/restofurl.png`
+* Set environment variables, as in the Instructions section
+* To compile and run from source: `gradle clean test`
+* Or to run a release build, `java -jar `java -jar screenshot-stitching-1.2-SNAPSHOT-all.jar`
+* The test will run through each URL in `websites.txt` (a newline separated list), and save each screenshot to
+`iPhone_6S_Plus_16GB_real_ABP_off_private/http.www.example.com/restofurl.png`
 
 # Notes
 
