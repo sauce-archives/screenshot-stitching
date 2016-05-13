@@ -37,6 +37,19 @@ public class CaptureWebPage {
 		System.out.println(" --- SCREENSHOT STITCHING (" + TESTOBJECT_DEVICE + ") --- \n");
 
 		TestObjectRemoteWebDriver driver = setUpDriver();
+		try {
+			takeScreenshots(driver);
+		} catch (Throwable e) {
+			System.out.println("An uncaught exception occurred.");
+			e.printStackTrace();
+			throw e;
+		}
+
+		Duration duration = Duration.between(beginTime, Instant.now());
+		System.out.println("\nAll tests completed. Duration: " + duration.toMinutes() + "min");
+	}
+
+	private void takeScreenshots(TestObjectRemoteWebDriver driver) throws InterruptedException, MalformedURLException {
 		for (int i = 0; i < websites.size(); ++i) { // Take a screenshot of every website
 			for (int attempt = 1; attempt <= maxAttempts; ++attempt) { // Attempt each up to 5 times.
 				try {
@@ -50,9 +63,6 @@ public class CaptureWebPage {
 				}
 			}
 		}
-
-		Duration duration = Duration.between(beginTime, Instant.now());
-		System.out.println("\nAll tests completed. Duration: " + duration.toMinutes() + "min");
 	}
 
 	private void takeStitchedScreenshot(TestObjectRemoteWebDriver driver, int index) throws IOException {
