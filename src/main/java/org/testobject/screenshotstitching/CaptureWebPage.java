@@ -55,9 +55,9 @@ public class CaptureWebPage {
 		System.out.println("\nAll tests completed. Duration: " + duration.toMinutes() + "min");
 	}
 
-	private void takeStitchedScreenshot(TestObjectRemoteWebDriver driver, int i) throws IOException {
-		String url = websites.get(i);
-		System.out.println(" Capturing screenshots of " + url + " (" + (i+1) + "/" + websites.size() + ")");
+	private void takeStitchedScreenshot(TestObjectRemoteWebDriver driver, int index) throws IOException {
+		String url = websites.get(index);
+		System.out.println(" Capturing screenshots of " + url + " (" + (index+1) + "/" + websites.size() + ")");
 		driver.get(url);
 		File screenshot = driver.getStitchedScreenshotAs(OutputType.FILE);
 		File savedScreenshot = new File(getScreenshotPath(url));
@@ -68,23 +68,30 @@ public class CaptureWebPage {
 	}
 
 	private static TestObjectRemoteWebDriver setUpDriver() throws MalformedURLException {
-		DesiredCapabilities capabilities = new DesiredCapabilities();
-		capabilities.setCapability("testobject_device", TESTOBJECT_DEVICE);
-		capabilities.setCapability("testobject_api_key", TESTOBJECT_API_KEY);
-		capabilities.setCapability("testobject_app_id", parseAppId(TESTOBJECT_APP_ID));
-		capabilities.setCapability("testobject_appium_version", TESTOBJECT_APPIUM_VERSION);
-		capabilities.setCapability("testobject_test_name", "Screenshot Stitching");
+		for (int attempt = 1; attempt <= 3; ++attempt) {
+			try {
+				DesiredCapabilities capabilities = new DesiredCapabilities();
+				capabilities.setCapability("testobject_device", TESTOBJECT_DEVICE);
+				capabilities.setCapability("testobject_api_key", TESTOBJECT_API_KEY);
+				capabilities.setCapability("testobject_app_id", parseAppId(TESTOBJECT_APP_ID));
+				capabilities.setCapability("testobject_appium_version", TESTOBJECT_APPIUM_VERSION);
+				capabilities.setCapability("testobject_test_name", "Screenshot Stitching");
 
-		URL endpoint = new URL(APPIUM_SERVER);
+				URL endpoint = new URL(APPIUM_SERVER);
 
-		TestObjectRemoteWebDriver driver = new TestObjectRemoteWebDriver(endpoint, capabilities);
+				TestObjectRemoteWebDriver driver = new TestObjectRemoteWebDriver(endpoint, capabilities);
 
-		System.out.println("Connected to " + TESTOBJECT_DEVICE + " at " + APPIUM_SERVER);
-		System.out.println("Report URL: " + driver.getCapabilities().getCapability("testobject_test_report_url"));
-		System.out.println("Live view: " + driver.getCapabilities().getCapability("testobject_test_live_view_url"));
-		System.out.println("--------------------");
+				System.out.println("Connected to " + TESTOBJECT_DEVICE + " at " + APPIUM_SERVER);
+				System.out.println("Report URL: " + driver.getCapabilities().getCapability("testobject_test_report_url"));
+				System.out.println("Live view: " + driver.getCapabilities().getCapability("testobject_test_live_view_url"));
+				System.out.println("--------------------");
 
-		return driver;
+				return driver;
+			} catch (Throwable e) {
+				System.out.println("Failed to set up TestObject driver, attempt " + attempt);
+			}
+		}
+		throw new RuntimeException("Failed to set up TestObject driver too many times. Perhaps device is unavailable?");
 	}
 
 	private static String[] parseAppId(String appIdString) {
