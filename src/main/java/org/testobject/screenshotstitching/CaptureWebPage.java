@@ -10,9 +10,14 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.util.List;
+
+import static java.time.LocalDateTime.now;
 
 /**
  * Appium test to screen capture an entire website and save it as a PNG.
@@ -24,7 +29,8 @@ public class CaptureWebPage {
 	private static final String TESTOBJECT_API_KEY = getEnvOrDefault("TESTOBJECT_API_KEY", "");
 	private static final String TESTOBJECT_APP_ID = getEnvOrDefault("TESTOBJECT_APP_ID", "1");
 
-	private static final int maxAttempts = 5;
+	private static final int maxScreenshotAttempts = 10;
+	private static final int maxConnectionAttempts = 10;
 	private static final List<String> websites = Websites.list();
 
 	public static void main(String... args) throws Exception {
@@ -34,30 +40,30 @@ public class CaptureWebPage {
 
 	private void openWebPageAndTakeScreenshot() throws Exception {
 		Instant beginTime = Instant.now();
-		System.out.println(" --- SCREENSHOT STITCHING (" + TESTOBJECT_DEVICE + ") --- \n");
+		log(" --- SCREENSHOT STITCHING (" + TESTOBJECT_DEVICE + ") --- \n");
 
 		TestObjectRemoteWebDriver driver = setUpDriver();
 		try {
 			takeScreenshots(driver);
 		} catch (Throwable e) {
-			System.out.println("An uncaught exception occurred.");
+			log("An uncaught exception occurred.");
 			e.printStackTrace();
 			throw e;
 		}
 
 		Duration duration = Duration.between(beginTime, Instant.now());
-		System.out.println("\nAll tests completed. Duration: " + duration.toMinutes() + "min");
+		log("\nAll tests completed. Duration: " + duration.toMinutes() + "min");
 	}
 
 	private void takeScreenshots(TestObjectRemoteWebDriver driver) throws InterruptedException, MalformedURLException {
 		for (int i = 0; i < websites.size(); ++i) { // Take a screenshot of every website
-			for (int attempt = 1; attempt <= maxAttempts; ++attempt) { // Attempt each up to 5 times.
+			for (int attempt = 1; attempt <= maxScreenshotAttempts; ++attempt) { // Attempt each up to 5 times.
 				try {
 					takeStitchedScreenshot(driver, i);
 					driver.manage().deleteAllCookies();
 					break;
 				} catch (Throwable e) {
-					System.out.println("Failed to take screenshot (attempt " + attempt + "), exception: " + e.getMessage());
+					log("Failed to take screenshot (attempt " + attempt + "), exception: " + e.getMessage());
 					Thread.sleep(30 * 1000);
 					driver = setUpDriver();
 				}
@@ -67,18 +73,27 @@ public class CaptureWebPage {
 
 	private void takeStitchedScreenshot(TestObjectRemoteWebDriver driver, int index) throws IOException {
 		String url = websites.get(index);
-		System.out.println(" Capturing screenshots of " + url + " (" + (index+1) + "/" + websites.size() + ")");
+		String filename = getScreenshotPath(url);
+		log(" Capturing screenshots of " + url + " (" + (index+1) + "/" + websites.size() + ")");
+		if (Files.exists(Paths.get(filename))) {
+			log("   File " + filename + " already exists, skipping");
+			return;
+		}
 		driver.get(url);
 		File screenshot = driver.getStitchedScreenshotAs(OutputType.FILE);
 		File savedScreenshot = new File(getScreenshotPath(url));
 		//noinspection ResultOfMethodCallIgnored
 		savedScreenshot.getParentFile().mkdirs();
 		FileUtils.copyFile(screenshot, savedScreenshot);
-		System.out.println("  Saved screenshot to " + savedScreenshot.getPath());
+		log("  Saved screenshot to " + savedScreenshot.getPath());
+	}
+
+	private static void log(String s) {
+		System.out.println(now(ZoneId.of("Europe/Berlin")) + " " + s);
 	}
 
 	private static TestObjectRemoteWebDriver setUpDriver() throws MalformedURLException {
-		for (int attempt = 1; attempt <= 3; ++attempt) {
+		for (int attempt = 1; attempt <= maxConnectionAttempts; ++attempt) {
 			try {
 				DesiredCapabilities capabilities = new DesiredCapabilities();
 				capabilities.setCapability("testobject_device", TESTOBJECT_DEVICE);
@@ -91,14 +106,14 @@ public class CaptureWebPage {
 
 				TestObjectRemoteWebDriver driver = new TestObjectRemoteWebDriver(endpoint, capabilities);
 
-				System.out.println("Connected to " + TESTOBJECT_DEVICE + " at " + APPIUM_SERVER);
-				System.out.println("Report URL: " + driver.getCapabilities().getCapability("testobject_test_report_url"));
-				System.out.println("Live view: " + driver.getCapabilities().getCapability("testobject_test_live_view_url"));
-				System.out.println("--------------------");
+				log("Connected to " + TESTOBJECT_DEVICE + " at " + APPIUM_SERVER);
+				log("Report URL: " + driver.getCapabilities().getCapability("testobject_test_report_url"));
+				log("Live view: " + driver.getCapabilities().getCapability("testobject_test_live_view_url"));
+				log("--------------------");
 
 				return driver;
 			} catch (Throwable e) {
-				System.out.println("Failed to set up TestObject driver, attempt " + attempt);
+				log("Failed to set up TestObject driver, attempt " + attempt);
 			}
 		}
 		throw new RuntimeException("Failed to set up TestObject driver too many times. Perhaps device is unavailable?");
