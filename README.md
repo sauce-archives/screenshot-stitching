@@ -12,6 +12,7 @@ The test reads environment variables for configuration:
 * `TESTOBJECT_DEVICE` (default is `iPhone_6S_Plus_16GB_real_ABP_off_private`)
 * `TESTOBJECT_APPIUM_VERSION` (default is `1.4.16`)
 * `WEBSITE_LIST_FILE` (default is `websites.txt`)
+* `SKIP_EXISTING_SCREENSHOTS` (default is `false`)
 
 ## Testing with ABP off
 
@@ -37,3 +38,5 @@ is the ID of the Adblock Plus app, which will be installed as a dependency. For 
 to work with an iPhone 6S Plus. Using this command on other devices may provide unexpected results.
 * Some websites have a header or footer which is fixed in position. We make no attempt to mitigate this, and as a result you'll likely see
 the header/footer element repeated in each screenshot.
+* You can also skip existing screenshots by passing in the `--skipExistingScreenshots` parameter, though this does not with the gradle
+build.

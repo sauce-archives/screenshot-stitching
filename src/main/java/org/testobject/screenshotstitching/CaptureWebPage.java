@@ -15,6 +15,7 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.Arrays;
 import java.util.List;
 
 import static java.time.LocalDateTime.now;
@@ -33,7 +34,10 @@ public class CaptureWebPage {
 	private static final int maxConnectionAttempts = 10;
 	private static final List<String> websites = Websites.list();
 
+	private static boolean skipExistingScreenshots = false;
+
 	public static void main(String... args) throws Exception {
+		skipExistingScreenshots = Arrays.asList(args).contains("skipExistingScreenshots");
 		CaptureWebPage test = new CaptureWebPage();
 		test.openWebPageAndTakeScreenshot();
 	}
@@ -75,7 +79,7 @@ public class CaptureWebPage {
 		String url = websites.get(index);
 		String filename = getScreenshotPath(url);
 		log(" Capturing screenshots of " + url + " (" + (index+1) + "/" + websites.size() + ")");
-		if (Files.exists(Paths.get(filename))) {
+		if (skipExistingScreenshots() && Files.exists(Paths.get(filename))) {
 			log("   File " + filename + " already exists, skipping");
 			return;
 		}
@@ -121,6 +125,11 @@ public class CaptureWebPage {
 
 	private static String[] parseAppId(String appIdString) {
 		return appIdString.split(",");
+	}
+
+	private static boolean skipExistingScreenshots() {
+		String skipEnvironmentVariable = getEnvOrDefault("SKIP_EXISTING_SCREENSHOTS", "false").toLowerCase();
+		return skipExistingScreenshots || Boolean.parseBoolean(skipEnvironmentVariable);
 	}
 
 	private static String getEnvOrDefault(String environmentVariable, String defaultValue) {
