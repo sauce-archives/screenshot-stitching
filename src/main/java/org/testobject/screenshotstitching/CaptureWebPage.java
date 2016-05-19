@@ -143,7 +143,8 @@ public class CaptureWebPage {
 
 	private String getScreenshotPath(String url) throws UnsupportedEncodingException {
 		String strippedProtocol = url.replace("http://", "http.").replace("https://", "https.");
-		String domain = strippedProtocol.substring(0, strippedProtocol.indexOf("/"));
+		String domain = strippedProtocol.substring(0,
+				strippedProtocol.contains("/") ? strippedProtocol.indexOf("/") : strippedProtocol.length());
 		String path = strippedProtocol.substring(strippedProtocol.indexOf("/") + 1);
 		domain = URLEncoder.encode(domain, "UTF-8");
 		path = URLEncoder.encode(path, "UTF-8");
