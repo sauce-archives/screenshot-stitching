@@ -15,8 +15,7 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import static java.time.LocalDateTime.now;
 
@@ -33,6 +32,7 @@ public class CaptureWebPage {
 	private static final int maxScreenshotAttempts = 10;
 	private static final int maxConnectionAttempts = 10;
 	private static final List<String> websites = Websites.list();
+	private static final Map<String, String> failedWebsites = new HashMap<>();
 
 	private static boolean skipExistingScreenshots = false;
 
@@ -57,20 +57,31 @@ public class CaptureWebPage {
 
 		Duration duration = Duration.between(beginTime, Instant.now());
 		log("\nAll tests completed. Duration: " + duration.toMinutes() + "min");
+		log("Failed to take screenshots of: " + Collections.singletonList(failedWebsites.entrySet()));
 	}
 
 	private void takeScreenshots(TestObjectRemoteWebDriver driver) throws InterruptedException, MalformedURLException {
-		for (int i = 0; i < websites.size(); ++i) { // Take a screenshot of every website
+		for (int websiteIndex = 0; websiteIndex < websites.size(); ++websiteIndex) { // Take a screenshot of every website
+			boolean screenshotSucceeded = false;
 			for (int attempt = 1; attempt <= maxScreenshotAttempts; ++attempt) { // Attempt each up to 5 times.
 				try {
-					takeStitchedScreenshot(driver, i);
+					takeStitchedScreenshot(driver, websiteIndex);
 					driver.manage().deleteAllCookies();
+					screenshotSucceeded = true;
 					break;
 				} catch (Throwable e) {
 					log("Failed to take screenshot (attempt " + attempt + "), exception: " + e.getMessage());
+					if (e.getMessage().contains("DOM Exception 18")) {
+						failedWebsites.put(websites.get(websiteIndex), "Website inaccessible");
+						screenshotSucceeded = true;
+						break;
+					}
 					Thread.sleep(30 * 1000);
 					driver = setUpDriver();
 				}
+			}
+			if (!screenshotSucceeded) {
+				failedWebsites.put(websites.get(websiteIndex), "UNKNOWN");
 			}
 		}
 	}
@@ -83,13 +94,19 @@ public class CaptureWebPage {
 			log("   File " + filename + " already exists, skipping");
 			return;
 		}
+
 		driver.get(url);
 		File screenshot = driver.getStitchedScreenshotAs(OutputType.FILE);
 		File savedScreenshot = new File(getScreenshotPath(url));
-		//noinspection ResultOfMethodCallIgnored
-		savedScreenshot.getParentFile().mkdirs();
-		FileUtils.copyFile(screenshot, savedScreenshot);
-		log("  Saved screenshot to " + savedScreenshot.getPath());
+
+		try {
+			//noinspection ResultOfMethodCallIgnored
+			savedScreenshot.getParentFile().mkdirs();
+			FileUtils.copyFile(screenshot, savedScreenshot);
+			log("  Saved screenshot to " + savedScreenshot.getPath());
+		} catch (IOException e) {
+			log("  Took screenshot but failed to save to " + savedScreenshot.getAbsolutePath() + ", " + e.getMessage());
+		}
 	}
 
 	private static void log(String s) {
@@ -97,6 +114,7 @@ public class CaptureWebPage {
 	}
 
 	private static TestObjectRemoteWebDriver setUpDriver() throws MalformedURLException {
+		Throwable lastException = null;
 		for (int attempt = 1; attempt <= maxConnectionAttempts; ++attempt) {
 			try {
 				DesiredCapabilities capabilities = new DesiredCapabilities();
@@ -118,9 +136,10 @@ public class CaptureWebPage {
 				return driver;
 			} catch (Throwable e) {
 				log("Failed to set up TestObject driver, attempt " + attempt);
+				lastException = e;
 			}
 		}
-		throw new RuntimeException("Failed to set up TestObject driver too many times. Perhaps device is unavailable?");
+		throw new RuntimeException("Failed to set up TestObject driver too many times. Perhaps device is unavailable?", lastException);
 	}
 
 	private static String[] parseAppId(String appIdString) {
@@ -141,13 +160,16 @@ public class CaptureWebPage {
 		}
 	}
 
-	private String getScreenshotPath(String url) throws UnsupportedEncodingException {
+	private static String getScreenshotPath(String url) throws UnsupportedEncodingException {
 		String strippedProtocol = url.replace("http://", "http.").replace("https://", "https.");
 		String domain = strippedProtocol.substring(0,
 				strippedProtocol.contains("/") ? strippedProtocol.indexOf("/") : strippedProtocol.length());
 		String path = strippedProtocol.substring(strippedProtocol.indexOf("/") + 1);
 		domain = URLEncoder.encode(domain, "UTF-8");
 		path = URLEncoder.encode(path, "UTF-8");
+		if (path.length() > 128) {
+			path = path.substring(0, 128) + "...";
+		}
 		return TESTOBJECT_DEVICE + File.separator + domain + File.separator + path + ".png";
 	}
 }
