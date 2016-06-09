@@ -29,8 +29,8 @@ public class CaptureWebPage {
 	private static final String TESTOBJECT_API_KEY = getEnvOrDefault("TESTOBJECT_API_KEY", "");
 	private static final String TESTOBJECT_APP_ID = getEnvOrDefault("TESTOBJECT_APP_ID", "1");
 
-	private static final int maxScreenshotAttempts = 10;
-	private static final int maxConnectionAttempts = 10;
+	private static final int maxScreenshotAttempts = 5;
+	private static final int maxConnectionAttempts = 5;
 	private static final List<String> websites = Websites.list();
 	private static final Map<String, String> failedWebsites = new HashMap<>();
 
@@ -113,7 +113,7 @@ public class CaptureWebPage {
 		System.out.println(now(ZoneId.of("Europe/Berlin")) + " " + s);
 	}
 
-	private static TestObjectRemoteWebDriver setUpDriver() throws MalformedURLException {
+	private static TestObjectRemoteWebDriver setUpDriver() throws MalformedURLException, InterruptedException {
 		Throwable lastException = null;
 		for (int attempt = 1; attempt <= maxConnectionAttempts; ++attempt) {
 			try {
@@ -136,6 +136,7 @@ public class CaptureWebPage {
 				return driver;
 			} catch (Throwable e) {
 				log("Failed to set up TestObject driver, attempt " + attempt);
+				Thread.sleep(60 * 1000);
 				lastException = e;
 			}
 		}
