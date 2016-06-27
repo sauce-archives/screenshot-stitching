@@ -28,7 +28,7 @@ is the ID of the Adblock Plus app, which will be installed as a dependency. For 
 
 * Set environment variables, as in the Instructions section
 * To compile and run from source: `gradle clean test`
-* Or to run a release build, `java -jar `java -jar screenshot-stitching-1.3.1-all.jar`
+* Or to run a release build, `java -jar screenshot-stitching-1.3.1-all.jar`
 * The test will run through each URL in `websites.txt` (a newline separated list), and save each screenshot to
 `iPhone_6S_Plus_16GB_real_ABP_off_private/http.www.example.com/restofurl.png`
 
