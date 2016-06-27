@@ -171,6 +171,9 @@ public class CaptureWebPage {
 		if (path.length() > 128) {
 			path = path.substring(0, 128) + "...";
 		}
+		if (path.isEmpty()) {
+			path = "screenshot";
+		}
 		return TESTOBJECT_DEVICE + File.separator + domain + File.separator + path + ".png";
 	}
 }
